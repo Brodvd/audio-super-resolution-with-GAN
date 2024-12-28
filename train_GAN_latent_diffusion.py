@@ -77,8 +77,8 @@ def train(generator, discriminator, epochs, batch_size, data):
     d_losses, g_losses = [], []
 
     for epoch in range(epochs):
-        # Modifica il learning rate dopo 50 epoche
-        if epoch >= 25:
+        # Modifica il learning rate dopo n epoche
+        if epoch >= 10:
             new_lr = initial_lr * (0.99 ** (epoch - 50))
             tf.keras.backend.set_value(optimizer.learning_rate, new_lr)
         
@@ -157,7 +157,7 @@ def slice_audio_data(data, segment_length):
 damaged_folder = './Training-Data/GAN_latent_diffusion/Damaged'
 original_folder = './Training-Data/GAN_latent_diffusion/High-Resolution'
 damaged_data, original_data = load_audio_data(damaged_folder, original_folder)
-segment_length = 2048 # fissa
+segment_length = 2048 # fissata
 damaged_data_sliced = slice_audio_data(damaged_data, segment_length)
 original_data_sliced = slice_audio_data(original_data, segment_length)
 
@@ -167,4 +167,4 @@ print("Concatenazione riuscita.")
 
 generator = build_generator()
 discriminator = build_discriminator()
-train(generator, discriminator, epochs=50, batch_size=32, data=data)
+train(generator, discriminator, epochs=50, batch_size=32, data=data
