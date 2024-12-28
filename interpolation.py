@@ -104,48 +104,7 @@ if __name__ == '__main__':
         waveform_hat.append(waveform[-1])
 
         waveform_hat = np.array(waveform_hat)
-        # X = data_test.stft(waveform, 512, 256)
-        # X_log_magnitude, X_phase = data_test.decompose_stft(X)
-        # X_low, X_high, X_low_phase, X_high_phase = data_test.extract_low_high(X_log_magnitude, X_phase)
-        # m, n = X_low.shape
-        #
-        # X_log_magnitude = X_log_magnitude[0:m//32*32]
-        # X_phase = X_phase[0:m//32*32]
-        # X_low = X_low[0:m // 32 * 32]
-        # X_high = X_high[0:m // 32 * 32]
-        # X_low_phase = X_low_phase[0:m // 32 * 32]
-        # X_high_phase = X_high_phase[0:m // 32 * 32]
-        #
-        # Xhat_log_magnitude=[]
-        # Xhat_phase=[]
-        #
-        # for i in range(len(X_log_magnitude)):
-        #     Xhat_log_magnitude.append([])
-        #     for j in range(len(X_log_magnitude[i])-1):
-        #         if j%2==0:
-        #             Xhat_log_magnitude[i].append(X_log_magnitude[i][j])
-        #         else:
-        #             Xhat_log_magnitude[i].append((X_log_magnitude[i][j-1]+X_log_magnitude[i][j+1])/2)
-        #     Xhat_log_magnitude[i].append(X_log_magnitude[i][1])
-        # Xhat_log_magnitude = np.array(Xhat_log_magnitude)
-        #
-        # for i in range(len(X_phase)):
-        #     Xhat_phase.append([])
-        #     for j in range(len(X_phase[i])-1):
-        #         if j%2==0:
-        #             Xhat_phase[i].append(X_phase[i][j])
-        #         else:
-        #             Xhat_phase[i].append((X_phase[i][j-1]+X_phase[i][j+1])/2)
-        #     Xhat_phase[i].append(-X_phase[i][1])
-        # Xhat_phase = np.array(Xhat_phase)
-        #
-        # n_samples = (m // 32 * 32 + 1) * 256
-        # Xhat = data_test.compose_stft(Xhat_log_magnitude, X_phase)
-        # xhat = data_test.istft(Xhat, n_samples)
-        #
-        # if (idx % 50 == 0):
-        #     soundfile.write('data/test_output/' + str(idx) + '.wav', xhat, 16000)  # 48000
-        # idx += 1
+
         soundfile.write('data/test_output/' + str(idx) + '.wav', waveform_hat, 16000)
         idx += 1
         X = data_test.stft(waveform, 512, 256)
