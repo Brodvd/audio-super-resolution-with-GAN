@@ -37,22 +37,8 @@ class CNN():
         c2 = Conv1D(filters=512, kernel_size=5, strides=2, padding='same')(a1)
         b2 = BatchNormalization()(c2)
         a2 = LeakyReLU(alpha=0.2)(b2)
-
-        # c3 = Conv1D(filters=512, kernel_size=3, strides=2, padding='same')(a2)
-        # b3 = BatchNormalization()(c3)
-        # a3 = LeakyReLU(alpha=0.2)(b3)
-        #
-        # c4 = Conv1D(filters=1024, kernel_size=3, strides=2, padding='same')(a3)
-        # b4 = BatchNormalization()(c4)
-        # a4 = LeakyReLU(alpha=0.2)(b4)
-        #
-        # c5 = Conv1D(filters=512, kernel_size=3, strides=1, padding='same')(a4)
-        # u5 = UpSampling1D(size=2)(c5)
-        # b5 = BatchNormalization()(u5)
-        # a5 = LeakyReLU(alpha=0.2)(b5)
-        # A5 = Add()([a5, a3])
-
-        c6 = Conv1D(filters=512, kernel_size=5, strides=1, padding='same')(a2)
+        
+         c6 = Conv1D(filters=512, kernel_size=5, strides=1, padding='same')(a2)
         # u6 = UpSampling1D(size=2)(c6)
         b6 = BatchNormalization()(c6)
         a6 = LeakyReLU(alpha=0.2)(b6)
@@ -76,51 +62,6 @@ class CNN():
         # a9 = LeakyReLU(alpha=0.2)(c9)
 
         return Model(audio_lr, c9)
-        # audio_lr = Input(shape=(32,LRSHAPE))
-        # c1 = Conv1D(filters=256, kernel_size=7, strides=2,padding='same')(audio_lr)
-        # b1 = BatchNormalization()(c1)
-        # a1 = LeakyReLU(alpha=0.2)(b1)
-        #
-        # c2 = Conv1D(filters=512, kernel_size=5, strides=2,padding='same')(a1)
-        # b2 = BatchNormalization()(c2)
-        # a2 = LeakyReLU(alpha=0.2)(b2)
-        #
-        # c3 = Conv1D(filters=512, kernel_size=3, strides=2,padding='same')(a2)
-        # b3 = BatchNormalization()(c3)
-        # a3 = LeakyReLU(alpha=0.2)(b3)
-        #
-        # c4 = Conv1D(filters=1024, kernel_size=3, strides=2,padding='same')(a3)
-        # b4 = BatchNormalization()(c4)
-        # a4 = LeakyReLU(alpha=0.2)(b4)
-        #
-        # c5 = Conv1D(filters=512, kernel_size=3, strides=1,padding='same')(a4)
-        # u5 = UpSampling1D(size=2)(c5)
-        # b5 = BatchNormalization()(u5)
-        # a5 = LeakyReLU(alpha=0.2)(b5)
-        # A5 = Add()([a5,a3])
-        #
-        # c6 = Conv1D(filters=512, kernel_size=5, strides=1,padding='same')(A5)
-        # u6 = UpSampling1D(size=2)(c6)
-        # b6 = BatchNormalization()(u6)
-        # a6 = LeakyReLU(alpha=0.2)(b6)
-        # A6 = Add()([a6,a2])
-        #
-        # c7 = Conv1D(filters=256, kernel_size=7, strides=1,padding='same')(A6)
-        # u7 = UpSampling1D(size=2)(c7)
-        # b7 = BatchNormalization()(u7)
-        # a7 = LeakyReLU(alpha=0.2)(b7)
-        # A7 = Add()([a7,a1])
-        #
-        # c8 = Conv1D(filters=HRSHAPE, kernel_size=7, strides=1,padding='same')(A7)
-        # u8 = UpSampling1D(size=2)(c8)
-        # b8 = BatchNormalization()(u8)
-        # a8 = LeakyReLU(alpha=0.2)(b8)
-        #
-        # c9 = Conv1D(filters=HRSHAPE, kernel_size=9, strides=1,padding='same')(a8)
-        # # b9 = BatchNormalization()(c9)
-        # #a9 = LeakyReLU(alpha=0.2)(c9)
-        #
-        # return Model(audio_lr, c9)
 
 if __name__ == '__main__':
     srgan = CNN()
