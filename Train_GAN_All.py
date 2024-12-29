@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Conv1D, Conv2D, Input, Flatten, Dense, Reshape, LeakyReLU, Dropout
+from tensorflow.keras.layers import Conv1D, Input, Flatten, Dense, Reshape, LeakyReLU, Dropout
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers.legacy import Adam
 import numpy as np
@@ -11,14 +11,10 @@ from python_speech_features import mfcc
 
 # Funzione per estrarre le caratteristiche audio
 def extract_features(audio, sample_rate):
-    # Calcolo della Trasformata di Fourier
     fft_spectrum = fft(audio)
     magnitude = np.abs(fft_spectrum)
     phase = np.angle(fft_spectrum)
-    
-    # Calcolo del MFCC
     mfcc_features = mfcc(audio, samplerate=sample_rate, numcep=13)
-    
     return magnitude, phase, mfcc_features
 
 # Modifica della funzione di caricamento dei dati per includere le caratteristiche
@@ -41,7 +37,53 @@ def load_audio_data(damaged_folder, original_folder):
         original_data.append((magnitude, phase, mfcc_features))
         print(f"Caricato file originale: {file}, Lunghezza: {len(data)}, Forma: {np.shape(data)}")
     
-    return np.array(damaged_data), np.array(original_data)
+    return np.array(damaged_data, dtype=object), np.array(original_data, dtype=object)
+
+# Definizione della funzione slice_audio_data
+def slice_audio_data(data, segment_length):
+    sliced_data = []
+    for magnitude, phase, mfcc_features in data:
+        num_segments = len(magnitude) // segment_length
+        for i in range(num_segments):
+            segment = magnitude[i * segment_length:(i + 1) * segment_length]
+            sliced_data.append(segment)
+    return np.array(sliced_data)
+
+# Funzione per plottare le perdite
+def plot_losses(d_losses, g_losses):
+    epochs = range(1, len(d_losses) + 1)
+    plt.plot(epochs, d_losses, 'bo', label='Discriminator loss')
+    plt.plot(epochs, g_losses, 'b', label='Generator loss')
+    plt.title('Loss durante l\'addestramento')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+# Definizione delle funzioni build_generator e build_discriminator
+def build_generator():
+    model = tf.keras.Sequential()
+    model.add(Dense(256, input_dim=100))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(512))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(1024))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(2048))
+    model.add(Reshape((2048, 1)))
+    return model
+
+def build_discriminator():
+    model = tf.keras.Sequential()
+    model.add(Conv1D(64, kernel_size=5, strides=2, input_shape=(2048, 1), padding='same'))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.25))
+    model.add(Conv1D(128, kernel_size=5, strides=2, padding='same'))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dropout(0.25))
+    model.add(Flatten())
+    model.add(Dense(1, activation='sigmoid'))
+    return model
 
 # Modifica della funzione di addestramento per includere le caratteristiche
 def train(generator, discriminator, epochs, batch_size, data):
