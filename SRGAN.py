@@ -2,11 +2,10 @@ import scipy
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
 from keras.layers import BatchNormalization, Activation, ZeroPadding1D, Add
-from keras.layers.advanced_activations import PReLU, LeakyReLU
-from keras.layers.convolutional import UpSampling1D, Conv1D
+from keras.layers import PReLU, LeakyReLU, UpSampling1D, Conv1D
 from keras.applications import VGG19
 from keras.models import Sequential, Model
-from keras.optimizers import Adam,RMSprop
+from keras.optimizers import Adam, RMSprop
 from keras.callbacks import ModelCheckpoint
 import datetime
 import matplotlib.pyplot as plt
@@ -17,26 +16,29 @@ import keras.backend as K
 import joblib
 import numpy.random as random
 from load_data import LoadData
+
 LRSHAPE = 129
 HRSHAPE = 128
+
 class SRGAN():
-    def __init__(self,):
+    def __init__(self):
         self.generator = self.build_generator()
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='binary_crossentropy',
-                                   optimizer=Adam(0.0000001,0.5),
+                                   optimizer=Adam(0.0000001, 0.5),
                                    metrics=['accuracy'])
-        self.data = joblib.load('data/ld_train')
-        self.data_val = joblib.load('data/ld_val')
+        # Carica i dati
+        self.data = LoadData(wave_dirs=os.path.abspath('./Training-Data/GAN_latent_diffusion/Damaged'))
+        self.data_val = LoadData(wave_dirs=os.path.abspath('./Training-Data/GAN_latent_diffusion/High-Resolution'))
 
         self.discriminator.trainable = False
-        audio_lr = Input(shape=(32,LRSHAPE))
+        audio_lr = Input(shape=(32, LRSHAPE))
         fake_hr = self.generator(audio_lr)
         validity = self.discriminator(fake_hr)
-        self.combined = Model(audio_lr, [validity,fake_hr])
-        self.combined.compile(loss=['binary_crossentropy','mse'],
-                              loss_weights=[0.001,0.1],
-                              optimizer=Adam(0.0001,0.5))
+        self.combined = Model(audio_lr, [validity, fake_hr])
+        self.combined.compile(loss=['binary_crossentropy', 'mse'],
+                              loss_weights=[0.001, 0.1],
+                              optimizer=Adam(0.0001, 0.5))
         # self.combined = Model(audio_lr,validity)
         # self.combined.compile(loss='binary_crossentropy',
         #                       optimizer=Adam(0.00005))
@@ -78,7 +80,7 @@ class SRGAN():
                 K.set_value(model.optimizer.lr, lr * 0.5)
     def train(self, epochs=100, batch_size=64):
         Dloss1,Dloss,Gloss,Gloss_val=[],[],[],[]
-        self.generator.load_weights("weights/gen_epoch.h5")
+        #self.generator.load_weights("Models/gen_epoch.h5")
         #self.discriminator.load_weights("weights/dis_epoch.h5")
         for epoch in range(epochs):
             #self.scheduler([self.discriminator], epoch)
@@ -114,7 +116,7 @@ class SRGAN():
             Dloss.append(d_loss[0])
             Dloss1.append(d_loss[1])
 
-        os.makedirs('weights' , exist_ok=True)
+        os.makedirs('models' , exist_ok=True)
 
         plt.plot(range(1, epochs + 1), Dloss, label='Dloss')
         plt.plot(range(1, epochs + 1), Dloss1, label='Daccuracy')
@@ -125,8 +127,8 @@ class SRGAN():
         plt.ylabel('loss')
         plt.legend()
         plt.show()
-        self.generator.save_weights("weights/gen_epoch.h5" )
-        self.discriminator.save_weights("weights/dis_epoch.h5" )
+        self.generator.save_weights("Models/gen_epoch.h5" )
+        self.discriminator.save_weights("Models/dis_epoch.h5" )
     def build_generator(self):
         audio_lr = Input(shape=(32,LRSHAPE))
         c1 = Conv1D(filters=256, kernel_size=7, strides=2,padding='same')(audio_lr)
@@ -197,5 +199,3 @@ if __name__ == '__main__':
     #srgan.generator.summary()
     srgan.discriminator.summary()
     srgan.train(100,64)
-
-
