@@ -7,16 +7,16 @@ import sys
 import joblib
 import scipy as sp
 from moviepy.editor import*
-#import musdb
+
 class LoadData(object):
     def __init__(self, high_window_size=512,
                  high_window_shift=256,
                  low_window_size=256,
                  low_window_shift=128,
-                 sampling_rate=16000,#48000
-                 data_dir='data/musdb18/test/',
-                 wave_dir='data/musdbwav/test/testdata/',
-                 wave_dirs='data/musdbwav/test/',
+                 sampling_rate=48000,
+                 data_dir='Training-Data/SRGAN/High-Resolution',
+                 wave_dir='Training-Data/SRGAN/High-Resolution/2',
+                 wave_dirs='Training-Data/SRGAN/Damaged',
                  upsample=2
                  ):
         #self.mus = musdb.DB(root=data_dir,subsets=['train'])
@@ -30,6 +30,13 @@ class LoadData(object):
         self.wave_dirs = wave_dirs
         self.sampling_rate = sampling_rate
         self.upsample = upsample
+
+        print(f"high_window_size: {self.high_window_size}, high_window_shift: {self.high_window_shift}")
+        assert isinstance(self.high_window_size, int), "high_window_size deve essere un intero"
+        assert isinstance(self.high_window_shift, int), "high_window_shift deve essere un intero"
+
+        if not os.path.isdir(wave_dirs):
+            raise ValueError(f"{wave_dirs} is not a valid directory")
 
         #self.creatdata(data_dir)
         self.waveforms=self.loaddata(wave_dirs)
@@ -52,20 +59,26 @@ class LoadData(object):
                 audio = VideoFileClip(x).audio
                 audio.write_audiofile(self.wave_dir+str(m)+'.wav')
 
-    def loaddata(self,data_dir):
+    def loaddata(self, data_dir):
         files = []
-        for i in os.listdir(data_dir):
-            j = os.path.join(data_dir, i)
-            files.append(j)
+        if os.path.isdir(data_dir):
+        # Percorri tutte le directory e sottodirectory per trovare i file .wav
+            for root, dirs, file_names in os.walk(data_dir):
+                for file_name in file_names:
+                    if file_name.endswith(".wav"):
+                        files.append(os.path.join(root, file_name))
+        else:
+            # Aggiungi direttamente il file se data_dir è un file .wav
+            if data_dir.endswith(".wav"):
+                files.append(data_dir)
+    
         waveforms = []
         for file in files:
-            subfile = []
-            for i in os.listdir(file):
-                j = os.path.join(file, i)
-                subfile.append(j)
-            for x in subfile:
-                waveform, rate = librosa.load(x,sr=self.sampling_rate)
+            try:
+                waveform, rate = librosa.load(file, sr=self.sampling_rate)
                 waveforms.append(waveform)
+            except Exception as e:
+                print(f"Error loading {file}: {e}")
         return waveforms
 
     def create_training_set(self, train_waveforms):
@@ -92,6 +105,7 @@ class LoadData(object):
         X_lows, X_highs, X_lows_phase, X_highs_phase = [], [], [], []
 
         for waveform in waveforms:
+                print(f"high_window_size: {self.high_window_size}, high_window_shift: {self.high_window_shift}")
                 # First high band features
                 X = self.stft(waveform, self.high_window_size, self.high_window_shift)
                 X_log_magnitude, X_phase = self.decompose_stft(X)
@@ -104,11 +118,13 @@ class LoadData(object):
         return X_lows, X_highs, X_lows_phase, X_highs_phase
 
     def stft(self, x, window_size=512, window_shift=256):
-        """ STFT with non-symmetric Hamming window """
+        if not isinstance(window_size, int) or not isinstance(window_shift, int):
+            raise ValueError("window_size and window_shift must be integers")
         w = sps.hamming(window_size, sym=False)
         X = np.array([sp.fft.fft(w * x[i:i + window_size])
-                      for i in range(0, len(x) - window_size, window_shift)])
+                  for i in range(0, len(x) - window_size, window_shift)])
         return X
+
 
     def istft(self, X, n_samples, window_shift=256):
         """ iSTFT with symmetric Hamming window """
@@ -194,5 +210,5 @@ class LoadData(object):
         return np.exp(0.5 * X_log_magnitude + 1j * X_phase)
 
 if __name__ == "__main__":
-  ld = LoadData()
+  data = LoadData(wave_dirs=os.path.abspath('./Training-Data/GAN_latent_diffusion/Damaged'))
   joblib.dump(ld,'data/ld_test')
